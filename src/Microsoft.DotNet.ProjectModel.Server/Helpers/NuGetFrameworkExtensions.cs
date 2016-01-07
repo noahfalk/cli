@@ -14,9 +14,22 @@ namespace Microsoft.DotNet.ProjectModel.Server.Models
             {
                 ShortName = framework.GetShortFolderName(),
                 FrameworkName = framework.DotNetFrameworkName,
-                FriendlyName = framework.Framework,
+                FriendlyName = $"{framework.Framework} {framework.GetNormalizedVersionString()}",
                 RedistListPath = FrameworkReferenceResolver.Default.GetFrameworkRedistListPath(framework)
             };
+        }
+
+        public static string GetNormalizedVersionString(this NuGetFramework framework)
+        {
+            var ver = framework.Version;
+            if (ver.Revision == 0)
+            {
+                return $"{ver.Major}.{ver.Minor}.{ver.Build}";
+            }
+            else
+            {
+                return $"{ver.Major}.{ver.Minor}.{ver.Build}.{ver.Revision}";
+            }
         }
     }
 }

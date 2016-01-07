@@ -51,7 +51,9 @@ namespace Microsoft.DotNet.ProjectModel.Server.Models
             return base.GetHashCode();
         }
 
-        public static DependencyDescription Create(LibraryDescription library, IEnumerable<DiagnosticMessage> diagnostics)
+        public static DependencyDescription Create(LibraryDescription library,
+                                                   List<DiagnosticMessage> diagnostics,
+                                                   IDictionary<string, DependencyItem> allDependencyItems)
         {
             return new DependencyDescription
             {
@@ -61,11 +63,7 @@ namespace Microsoft.DotNet.ProjectModel.Server.Models
                 Type = library.Identity.Type.Value,
                 Resolved = library.Resolved,
                 Path = library.Path,
-                Dependencies = library.Dependencies.Select(dependency => new DependencyItem
-                {
-                    Name = dependency.Name,
-                    Version = dependency.VersionRange?.ToString() // TODO: review
-                }),
+                Dependencies = library.Dependencies.Select(dependency => allDependencyItems[dependency.Name]),
                 Errors = diagnostics.Where(d => d.Severity == DiagnosticMessageSeverity.Error)
                                     .Select(d => new DiagnosticMessageView(d)),
                 Warnings = diagnostics.Where(d => d.Severity == DiagnosticMessageSeverity.Warning)
