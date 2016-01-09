@@ -255,21 +255,21 @@ namespace Microsoft.DotNet.Tools.Publish
 
         private static void CopyContents(ProjectContext context, string outputPath)
         {
-            var sourceFiles = context.ProjectFile.Files.GetContentFiles();
-            Copy(sourceFiles, context.ProjectDirectory, outputPath);
+            var contentFiles = context.ProjectFile.Files.GetContentFiles();
+            Copy(contentFiles, context.ProjectDirectory, outputPath);
         }
 
-        private static void Copy(IEnumerable<string> sourceFiles, string sourceDirectory, string targetDirectory)
+        private static void Copy(IEnumerable<string> contentFiles, string sourceDirectory, string targetDirectory)
         {
-            if (sourceFiles == null)
+            if (contentFiles == null)
             {
-                throw new ArgumentNullException(nameof(sourceFiles));
+                throw new ArgumentNullException(nameof(contentFiles));
             }
 
             sourceDirectory = EnsureTrailingSlash(sourceDirectory);
             targetDirectory = EnsureTrailingSlash(targetDirectory);
 
-            foreach (var sourceFilePath in sourceFiles)
+            foreach (var sourceFilePath in contentFiles)
             {
                 Reporter.Verbose.WriteLine($"Publishing {sourceFilePath.Green().Bold()} ...");
 
