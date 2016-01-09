@@ -128,6 +128,8 @@ namespace Microsoft.DotNet.Tools.Publish
                 PublishFiles(export.NativeLibraries, outputPath, nativeSubdirectories);
             }
 
+            CopyContents(context, outputPath);
+
             // Publish a host if this is an application
             if (options.EmitEntryPoint.GetValueOrDefault())
             {
@@ -249,6 +251,72 @@ namespace Microsoft.DotNet.Tools.Publish
                     }
                 }
             }
+        }
+
+        private static void CopyContents(ProjectContext context, string outputPath)
+        {
+            var sourceFiles = context.ProjectFile.Files.GetContentFiles();
+            Copy(sourceFiles, context.ProjectDirectory, outputPath);
+        }
+
+        private static void Copy(IEnumerable<string> sourceFiles, string sourceDirectory, string targetDirectory)
+        {
+            if (sourceFiles == null)
+            {
+                throw new ArgumentNullException(nameof(sourceFiles));
+            }
+
+            sourceDirectory = EnsureTrailingSlash(sourceDirectory);
+            targetDirectory = EnsureTrailingSlash(targetDirectory);
+
+            foreach (var sourceFilePath in sourceFiles)
+            {
+                Reporter.Verbose.WriteLine($"Publishing {sourceFilePath.Green().Bold()} ...");
+
+                var fileName = Path.GetFileName(sourceFilePath);
+
+                var targetFilePath = sourceFilePath.Replace(sourceDirectory, targetDirectory);
+                var targetFileParentFolder = Path.GetDirectoryName(targetFilePath);
+
+                // Create directory before copying a file
+                if (!Directory.Exists(targetFileParentFolder))
+                {
+                    Directory.CreateDirectory(targetFileParentFolder);
+                }
+
+                File.Copy(
+                    sourceFilePath,
+                    targetFilePath,
+                    overwrite: true);
+
+                // clear read-only bit if set
+                var fileAttributes = File.GetAttributes(targetFilePath);
+                if ((fileAttributes & FileAttributes.ReadOnly) == FileAttributes.ReadOnly)
+                {
+                    File.SetAttributes(targetFilePath, fileAttributes & ~FileAttributes.ReadOnly);
+                }
+            }
+        }
+
+        private static string EnsureTrailingSlash(string path)
+        {
+            return EnsureTrailingCharacter(path, Path.DirectorySeparatorChar);
+        }
+
+        private static string EnsureTrailingCharacter(string path, char trailingCharacter)
+        {
+            if (path == null)
+            {
+                throw new ArgumentNullException(nameof(path));
+            }
+
+            // if the path is empty, we want to return the original string instead of a single trailing character.
+            if (path.Length == 0 || path[path.Length - 1] == trailingCharacter)
+            {
+                return path;
+            }
+
+            return path + trailingCharacter;
         }
     }
 }
