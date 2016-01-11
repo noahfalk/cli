@@ -124,6 +124,16 @@ namespace Microsoft.DotNet.Tools.Compiler.Native
             //arch
             argsList.Add($"/MACHINE:{config.Architecture}");
 
+            //exports
+            var exportsFile = Path.Combine(IlcSdkLibPath, "exports.txt");
+            if(File.Exists(exportsFile))
+            {
+                foreach(string export in File.ReadAllLines(exportsFile))
+                {
+                    argsList.Add($"/EXPORT:{export}");
+                }
+            }
+
             //Input Obj file
             var inputFile = DetermineInputFile(config);
             argsList.Add($"\"{inputFile}\"");
